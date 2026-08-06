@@ -92,7 +92,21 @@ try {
     $this->addError('photo', 'Photo validation is temporarily unavailable.');
     return;
 }
+```
 
+Livewire temporary uploads on **S3/GCS** are supported: the client prefers `readStream()` / `get()` when the SplFileInfo path is not a real local file. You can pass `$this->photo` directly — no app-side materialize helper is required.
+
+Capture widget `dataUrl` values are also accepted by `validatePhoto()`. Decode for storage with:
+
+```php
+PhotoSign::validatePhoto($dataUrl, [
+    'reference_id' => auth()->user()->STUDENTCODE,
+]);
+$decoded = PhotoSign::decodeDataUrl($dataUrl);
+Storage::disk('s3')->put("profile/{$code}.{$decoded['extension']}", $decoded['contents']);
+```
+
+```php
 PhotoSign::validateSignature($this->signature, [
     'reference_id' => auth()->user()->STUDENTCODE.'-sign',
 ]);

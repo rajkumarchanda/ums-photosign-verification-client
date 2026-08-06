@@ -3,6 +3,7 @@
 namespace PhotoSign;
 
 use PhotoSign\DTO\ValidationResult;
+use PhotoSign\Support\UploadReader;
 
 class PhotoSign
 {
@@ -13,6 +14,16 @@ class PhotoSign
     public function validatePhoto(mixed $file, array $options = []): ValidationResult
     {
         return $this->client->validatePhoto($file, $options);
+    }
+
+    /**
+     * Decode a capture-widget data URL for storage after validatePhoto($dataUrl).
+     *
+     * @return array{contents: string, extension: string, filename: string, mime: string}
+     */
+    public function decodeDataUrl(string $dataUrl): array
+    {
+        return UploadReader::decodeDataUrl($dataUrl);
     }
 
     public function validateSignature(mixed $file, array $options = []): ValidationResult

@@ -7,10 +7,9 @@ use GuzzleHttp\Exception\GuzzleException;
 use PhotoSign\DTO\ValidationResult;
 use PhotoSign\Exceptions\PhotoSignUnavailableException;
 use PhotoSign\Exceptions\ValidationFailedException;
-use Psr\Http\Message\StreamInterface;
+use PhotoSign\Support\UploadReader;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
-use SplFileInfo;
 
 class Client
 {
@@ -292,27 +291,11 @@ class Client
     }
 
     /**
-     * @return array{0: string|resource|StreamInterface, 1: string}
+     * @return array{0: string|resource|\Psr\Http\Message\StreamInterface, 1: string}
      */
     private function readFile(mixed $file): array
     {
-        if (is_string($file)) {
-            return [fopen($file, 'r') ?: throw new PhotoSignUnavailableException('Unable to read file.'), basename($file)];
-        }
-        if ($file instanceof SplFileInfo) {
-            return [fopen($file->getPathname(), 'r') ?: throw new PhotoSignUnavailableException('Unable to read file.'), $file->getFilename()];
-        }
-        if (is_object($file) && method_exists($file, 'getRealPath') && method_exists($file, 'getClientOriginalName')) {
-            $path = $file->getRealPath();
-            if (!$path) {
-                throw new PhotoSignUnavailableException('Uploaded file is not available on disk.');
-            }
-            return [fopen($path, 'r') ?: throw new PhotoSignUnavailableException('Unable to read upload.'), $file->getClientOriginalName()];
-        }
-        if (is_resource($file)) {
-            return [$file, 'upload.bin'];
-        }
-        throw new PhotoSignUnavailableException('Unsupported file input for PhotoSign.');
+        return UploadReader::forMultipart($file);
     }
 
     private function http(): HttpClient
